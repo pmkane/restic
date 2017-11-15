@@ -80,7 +80,11 @@ func diffTree(ctx context.Context, repo *repository.Repository, prefix string, i
 
 		switch {
 		case t1 && t2:
-			// Printf("  %v\n", path.Join(prefix, name))
+			if node1.Type != node2.Type {
+				Printf("T %v\n", path.Join(prefix, name))
+			} else if !node1.Equals(*node2) {
+				Printf("M %v\n", path.Join(prefix, name))
+			}
 			if node1.Type == "dir" && node2.Type == "dir" {
 				err := diffTree(ctx, repo, filepath.Join(prefix, name), *node1.Subtree, *node2.Subtree)
 				if err != nil {
