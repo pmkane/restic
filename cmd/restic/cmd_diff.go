@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"path"
-	"path/filepath"
+	"reflect"
 	"sort"
 
 	"github.com/restic/restic/internal/debug"
@@ -80,21 +80,42 @@ func diffTree(ctx context.Context, repo *repository.Repository, prefix string, i
 
 		switch {
 		case t1 && t2:
+			name := path.Join(prefix, name)
+			mod := ""
+
 			if node1.Type != node2.Type {
-				Printf("T %v\n", path.Join(prefix, name))
-			} else if !node1.Equals(*node2) {
-				Printf("M %v\n", path.Join(prefix, name))
+				mod += "T"
 			}
+
+			if node2.Type == "dir" {
+				name += "/"
+			}
+
+			if node1.Type == "file" &&
+				node2.Type == "file" &&
+				!reflect.DeepEqual(node1.Content, node2.Content) {
+				mod += "C"
+				if !node1.Equals(*node2) {
+					mod += "M"
+				}
+			} else if !node1.Equals(*node2) {
+				mod += "M"
+			}
+
+			if mod != "" {
+				Printf(" % -3v %v\n", mod, name)
+			}
+
 			if node1.Type == "dir" && node2.Type == "dir" {
-				err := diffTree(ctx, repo, filepath.Join(prefix, name), *node1.Subtree, *node2.Subtree)
+				err := diffTree(ctx, repo, name, *node1.Subtree, *node2.Subtree)
 				if err != nil {
 					Warnf("error: %v\n", err)
 				}
 			}
 		case t1 && !t2:
-			Printf("- %v\n", path.Join(prefix, name))
+			Printf("-    %v\n", path.Join(prefix, name))
 		case !t1 && t2:
-			Printf("+ %v\n", path.Join(prefix, name))
+			Printf("+    %v\n", path.Join(prefix, name))
 		}
 	}
 
