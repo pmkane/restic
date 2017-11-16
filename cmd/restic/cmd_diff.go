@@ -106,6 +106,13 @@ func diffTree(ctx context.Context, repo *repository.Repository, prefix string, i
 				Printf(" % -3v %v\n", mod, name)
 			}
 
+			if node1.Type == "file" &&
+				node2.Type == "file" &&
+				strings.Contains(mod, "M") {
+				Verbosef("  before: %v\n", node1)
+				Verbosef("  after:  %v\n", node2)
+			}
+
 			if node1.Type == "dir" && node2.Type == "dir" {
 				err := diffTree(ctx, repo, name, *node1.Subtree, *node2.Subtree)
 				if err != nil {
