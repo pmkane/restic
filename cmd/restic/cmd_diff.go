@@ -5,6 +5,7 @@ import (
 	"path"
 	"reflect"
 	"sort"
+	"strings"
 
 	"github.com/restic/restic/internal/debug"
 	"github.com/restic/restic/internal/errors"
